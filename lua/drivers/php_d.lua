@@ -23,19 +23,24 @@ phpunit_driver.exit = function ()
             timeout = 1000,
         })
     else
-        vim.notify(phpunit_driver._cache.output[#phpunit_driver._cache.output], vim.log.levels.INFO, {
-            title = "Test Driver PHP Unit",
-            timeout = 2000,
-        })
+        vim.notify(
+            phpunit_driver._cache.output[#phpunit_driver._cache.output],
+            vim.log.levels.INFO, {
+                title = "Test Driver PHP Unit",
+                timeout = 2000,
+            }
+        )
     end
 end
 
 phpunit_driver._run_test = function ()
-    vim.notify = require("notify")
-    vim.notify(phpunit_driver.start_notification, vim.log.levels.INFO, {
-        title = "Test Driver",
-        timeout = 1000
-    })
+    vim.notify(
+        phpunit_driver.start_notification,
+        vim.log.levels.INFO, {
+                title = "Test Driver",
+                timeout = 1000
+            }
+        )
     vim.fn.jobstart(phpunit_driver._cmd, {
         stdout_buffered = true,
         on_stdout = function (_, data)
@@ -48,7 +53,6 @@ phpunit_driver._run_test = function ()
 end
 
 local M = {
-    start_notification = "Starting PHP Unit test",
     runners = {
         ["phpunit"] = phpunit_driver,
         ["default"] = phpunit_driver,
@@ -65,37 +69,14 @@ M.load_runner = function (runner)
    M.loaded_runner = runner or "default"
 end
 
-M.stdout = function (data)
-    if not data then
-        return
-    end
-
-    for _, line in ipairs(data) do
-        if line ~= "" then
-            table.insert(M._cache.output, line)
-        end
-    end
-end
-
-M.exit = function ()
-    if #M._cache.output == 0 then
-        vim.notify("No PHP test output", vim.log.levels.WARN, {
-            title = "Test Driver PHP Unit",
-            timeout = 1000,
-        })
-    else
-        vim.notify(M._cache.output[#M._cache.output], vim.log.levels.INFO, {
-            title = "Test Driver PHP Unit",
-            timeout = 2000,
-        })
-    end
-end
-
 M.run_test = function (runner)
     M.load_runner(runner)
     local loaded = M.runners[M.loaded_runner]
     if not loaded then
-        vim.notify({"Invalid test runner for PHP ", M.loaded_runner}, vim.log.levels.ERROR)
+        vim.notify(
+            {"Invalid test runner for PHP ", M.loaded_runner},
+            vim.log.levels.ERROR
+        )
         return
     end
     loaded._run_test()
