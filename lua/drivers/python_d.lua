@@ -119,7 +119,7 @@ local M = {
 
 M.setup  = function (opts)
     local args = opts or {}
-    vim.tbl_deep_extend("force", args)
+    vim.tbl_deep_extend("force", M, args)
 end
 
 M.load_runner = function (runner)

@@ -1,4 +1,6 @@
 local phpunit_driver = {
+    start_notification = "Starting PHPUnit tests ...",
+    _cmd = "./vendor/bin/phpunit",
     _cache = {
         output = {}
     },
@@ -62,7 +64,7 @@ local M = {
 
 M.setup  = function (opts)
     local args = opts or {}
-    vim.tbl_deep_extend("force", args)
+    vim.tbl_deep_extend("force", M, args)
 end
 
 M.load_runner = function (runner)

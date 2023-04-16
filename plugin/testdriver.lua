@@ -1,9 +1,15 @@
 local drivers = {
     ["go"] = function(args)
         local opts = args or {}
+        local driver = require"drivers.go_d"
+        driver.setup(opts)
+        return driver
     end,
     ["javascript"] = function(args)
         local opts = args or {}
+        local driver = require"drivers.js_d"
+        driver.setup(opts)
+        return driver
     end,
     ["php"] = function (args)
         local opts = args or {}
@@ -13,6 +19,9 @@ local drivers = {
     end,
     ["python"] = function (args)
         local opts = args or {}
+        local driver = require"drivers.python_d"
+        driver.setup(opts)
+        return driver
     end,
 }
 
@@ -26,7 +35,8 @@ local function load_driver(name, opts)
     return nil
 end
 
-vim.api.nvim_create_user_command("tdTest", function ()
+vim.api.nvim_create_user_command("TdTest", function ()
+    vim.notify = require"notify"
     local driver = load_driver(vim.bo.filetype, {})
     if not driver then
         vim.notify(
@@ -43,4 +53,24 @@ vim.api.nvim_create_user_command("tdTest", function ()
         return
     end
     driver.run_test()
-end)
+end, {})
+
+vim.api.nvim_create_user_command("TdWithCov", function ()
+    vim.notify = require"notify"
+    local driver = load_driver(vim.bo.filetype, {})
+    if not driver then
+        vim.notify(
+            {"Couldnt load test driver for current file type ", vim.bo.filetype},
+            vim.log.levels.ERROR
+        )
+        return
+    end
+    if not driver.with_coverage then
+        vim.notify(
+            {"Current driver ", vim.bo.filetype, " does not implement running tests with coverage."},
+            vim.log.levels.ERROR
+        )
+        return
+    end
+    driver.with_coverage()
+end, {})
