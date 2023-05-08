@@ -84,4 +84,17 @@ M.run_test = function (runner)
     loaded._run_test()
 end
 
+M.get_output = function (runner)
+    M.load_runner(runner)
+    local loaded = M.runners[M.loaded_runner]
+    if not loaded then
+        vim.notify(
+            {"Invalid test runner for PHP ", M.loaded_runner},
+            vim.log.levels.ERROR
+        )
+        return
+    end
+    return loaded._cache.output
+end
+
 return M

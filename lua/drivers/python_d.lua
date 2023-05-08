@@ -152,4 +152,17 @@ M.with_coverage = function (runner)
     loaded._run_with_coverage()
 end
 
+M.get_output = function (runner)
+    M.load_runner(runner)
+    local loaded = M.runners[M.loaded_runner]
+    if not loaded then
+        vim.notify(
+            {"Invalid test runner for Python ", M.loaded_runner},
+            vim.log.levels.ERROR
+        )
+        return
+    end
+    return loaded._cache.output
+end
+
 return M
