@@ -42,6 +42,9 @@ go_test.stdout = function (data)
     for _, line in ipairs(data) do
         pcall(function ()
             local decoded = vim.json.decode(line)
+            if not decoded then
+                return
+            end
             if decoded.Action == "pass" then
                 if not go_test._cache.passed[decoded.Package] then
                     go_test._cache.passed[decoded.Package] = {
@@ -119,17 +122,22 @@ M.load_runner = function (runner)
    M.loaded_runner = runner or "default"
 end
 
-M.run_test = function (runner)
-    M.load_runner(runner)
-    local loaded = M.runners[M.loaded_runner]
-    if not loaded then
+M.attach = function (bufnr, namespace, group, test_runner)
+    M.load_runner(test_runner)
+    local runner = M.runners[M.loaded_runner]
+
+    if not runner then
         vim.notify(
-            {"Invalid test runner for Go ", M.loaded_runner},
+            "Invalid test runner for Go " .. M.loaded_runner,
             vim.log.levels.ERROR
         )
         return
     end
-    loaded._run_test()
+
+    vim.api.nvim_buf_create_user_command(bufnr, "RunTests", function ()
+        runner._run_test()
+    end, {})
+
 end
 
 return M

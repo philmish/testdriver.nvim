@@ -97,4 +97,21 @@ M.get_output = function (runner)
     return loaded._cache.output
 end
 
+M.attach = function (bufnr, namespace, group, test_runner)
+    local cache = {}
+    M.load_runner(test_runner)
+    local runner = M.runners[M.loaded_runner]
+    if not runner then
+        vim.notify(
+            "Invalid test runner for PHP " .. M.loaded_runner,
+            vim.log.levels.ERROR
+        )
+        return
+    end
+
+    vim.api.nvim_buf_create_user_command(bufnr, "RunTests", function ()
+        runner._run_test()
+    end, {})
+end
+
 return M

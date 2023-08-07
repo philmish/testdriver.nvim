@@ -82,6 +82,10 @@ jest_driver._run_test = function ()
                 pcall(function ()
                     local decoded = vim.json.decode(line)
 
+                    if not decoded then
+                        return
+                    end
+
                     if decoded.numFailedTestSuites then
                         jest_driver._cache.failed_suites = decoded.numFailedTestSuites
                     end
@@ -130,30 +134,49 @@ M.load_runner = function (runner)
    M.loaded_runner = runner or "default"
 end
 
-M.run_test = function (runner)
-    M.load_runner(runner)
-    local loaded = M.runners[M.loaded_runner]
-    if not loaded then
-        vim.notify(
-            {"Invalid test runner for JS ", M.loaded_runner},
-            vim.log.levels.ERROR
-        )
-        return
-    end
-    loaded._run_test()
-end
-
 M.get_output = function (runner)
     M.load_runner(runner)
     local loaded = M.runners[M.loaded_runner]
     if not loaded then
         vim.notify(
-            {"Invalid test runner for JS ", M.loaded_runner},
+            "Invalid test runner for JS " .. M.loaded_runner,
             vim.log.levels.ERROR
         )
         return
     end
     return loaded._cache.results
+end
+
+M.attach = function (bufnr, namespace, group, test_runner)
+    M.load_runner(test_runner)
+    local runner = M.runners[M.loaded_runner]
+    if not runner then
+        vim.notify(
+            "Invalid test runner for JS " .. M.loaded_runner,
+            vim.log.levels.ERROR
+        )
+        return
+    end
+
+    vim.api.nvim_buf_create_user_command(bufnr, "RunTests", function ()
+       runner._run_test()
+    end, {})
+
+    vim.api.nvim_buf_create_user_command(bufnr, "TestOutSplit", function ()
+        local output = runner._cache.results
+
+        if not output then
+            vim.notify(
+                "No cached output. Run Tests first.",
+                vim.log.levels.WARN
+            )
+            return
+        end
+
+        vim.opt.splitright = true
+        vim.cmd.vnew()
+        vim.api.nvim_buf_set_lines(vim.api.nvim_get_current_buf(), 0, -1, false, output)
+    end, {})
 end
 
 return M
