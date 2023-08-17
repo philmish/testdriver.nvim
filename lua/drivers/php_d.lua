@@ -98,7 +98,6 @@ M.get_output = function (runner)
 end
 
 M.attach = function (bufnr, namespace, group, test_runner)
-    local cache = {}
     M.load_runner(test_runner)
     local runner = M.runners[M.loaded_runner]
     if not runner then
