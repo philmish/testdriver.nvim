@@ -1,3 +1,9 @@
+local phpunit_ext_driver = require("drivers.phpunit_ext_driver")
+
+-- Test Driver for PHPUnit
+---@class PhpunitDriver
+---@field start_notification string Notification when command tests are run
+---@field _cmd string Command to call to start phpunit
 local phpunit_driver = {
     start_notification = "Starting PHPUnit tests ...",
     _cmd = "./vendor/bin/phpunit",
@@ -57,6 +63,7 @@ end
 local M = {
     runners = {
         ["phpunit"] = phpunit_driver,
+        ["phpunitext"] = phpunit_ext_driver,
         ["default"] = phpunit_driver,
     },
     loaded_runner = "default"
