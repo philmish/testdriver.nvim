@@ -64,7 +64,7 @@ local M = {
     runners = {
         ["phpunit"] = phpunit_driver,
         ["phpunitext"] = phpunit_ext_driver,
-        ["default"] = phpunit_driver,
+        ["default"] = phpunit_ext_driver,
     },
     loaded_runner = "default"
 }
@@ -118,6 +118,12 @@ M.attach = function (bufnr, namespace, group, test_runner)
     vim.api.nvim_buf_create_user_command(bufnr, "RunTests", function ()
         runner._run_test()
     end, {})
+
+    if runner._load_diagnostics ~= nil then
+        vim.api.nvim_buf_create_user_command(bufnr, "ShowDiag", function ()
+            runner._load_diagnostics(namespace, bufnr)
+        end, {})
+    end
 end
 
 return M

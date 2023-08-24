@@ -1,3 +1,26 @@
+local ts_query_method = [[
+(method_declaration
+    (name) @testname (#eq? "%s")    
+)
+]]
+
+---Returns the line num for a test method
+---@param name string
+local function get_test_line(name, bufnr)
+    local formatted = string.format(ts_query_method, name)
+    local query = vim.treesitter.query.parse("php", formatted)
+    local parser = vim.treesitter.get_parser(bufnr, "php", {})
+    local tree = parser:parse()[1]
+    local root = tree:root()
+
+    for id, node in query:iter_captures(root, bufnr, 0, -1) do
+        if id == 1 then
+            local range = { node:range() }
+            return range[1]
+        end
+    end
+end
+
 --- Cache for Testdriver for the testdriver phpunit extension
 ---@class PhpunitExtDriverCache
 local PhpunitExtDriverCache = {
@@ -170,6 +193,24 @@ phpunit_ext_driver._run_test = function ()
             })
         end,
     })
+end
+
+function phpunit_ext_driver._load_diagnostics(ns, bufnr)
+    local file = vim.fn.expand('%:p')
+    if phpunit_ext_driver._test_data.test_map[file] ~= nil then
+        local data = phpunit_ext_driver._test_data.test_map[file]
+        for class, tests in pairs(data) do
+            for name, data in pairs(tests) do
+                local line = get_test_line(name, bufnr)
+                if data.passed then
+                    local text = { "Passed ✓" }
+                    vim.api.nvim_buf_set_extmark(bufnr, ns, line, 0, {
+                        virt_text = { text }
+                    })
+                end
+            end
+        end
+    end
 end
 
 return phpunit_ext_driver
