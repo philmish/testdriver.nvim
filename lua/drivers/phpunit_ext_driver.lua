@@ -151,7 +151,7 @@ function phpunit_ext_driver.append_test_result(decoded)
     end
 end
 
-phpunit_ext_driver._run_test = function ()
+phpunit_ext_driver._run_test = function (bufnr, ns)
     vim.notify(
         phpunit_ext_driver.start_notification,
         vim.log.levels.INFO, {
@@ -159,6 +159,8 @@ phpunit_ext_driver._run_test = function ()
                 timeout = 1000
             }
         )
+    phpunit_ext_driver._test_data.clear()
+    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
     vim.fn.jobstart(phpunit_ext_driver._cmd, {
         stdout_buffered = true,
@@ -199,17 +201,30 @@ function phpunit_ext_driver._load_diagnostics(ns, bufnr)
     local file = vim.fn.expand('%:p')
     if phpunit_ext_driver._test_data.test_map[file] ~= nil then
         local data = phpunit_ext_driver._test_data.test_map[file]
+        local failed ={}
+        vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
         for class, tests in pairs(data) do
-            for name, data in pairs(tests) do
+            for name, info in pairs(tests) do
                 local line = get_test_line(name, bufnr)
-                if data.passed then
+                if info.passed then
                     local text = { "Passed ✓" }
                     vim.api.nvim_buf_set_extmark(bufnr, ns, line, 0, {
                         virt_text = { text }
                     })
+                else
+                    table.insert(failed, {
+                        bufnr = bufnr,
+                        lnum = line,
+                        col = 0,
+                        severity = vim.diagnostic.severity.ERROR,
+                        source = "phpunit-ext-testdriver",
+                        message = "Test Failed",
+                        user_data = {},
+                    })
                 end
             end
         end
+        vim.diagnostic.set(ns, bufnr, failed, {})
     end
 end
 

@@ -41,7 +41,7 @@ phpunit_driver.exit = function ()
     end
 end
 
-phpunit_driver._run_test = function ()
+phpunit_driver._run_test = function (bufnr, ns)
     vim.notify(
         phpunit_driver.start_notification,
         vim.log.levels.INFO, {
@@ -116,7 +116,7 @@ M.attach = function (bufnr, namespace, group, test_runner)
     end
 
     vim.api.nvim_buf_create_user_command(bufnr, "RunTests", function ()
-        runner._run_test()
+        runner._run_test(bufnr, namespace)
     end, {})
 
     if runner._load_diagnostics ~= nil then
